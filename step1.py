@@ -5,7 +5,6 @@ import os
 import time
 from selenium import webdriver
 
-result_range =100
 
 def extractAuthors(score_file):
     authors = []
@@ -21,10 +20,7 @@ def write_result(result_list):
         writer = csv.writer(file)
         writer.writerow(['author_name', 'find_or_not', 'H-index', 'G-index'])
         for result in result_list:
-            if len(result) == 4:
                 writer.writerow(result)
-            else:
-                writer.writerow([result[0], "Error Occure", -1, -1, "An error occured when finding the g-index"])
 
 
 def get_urls(authors):
@@ -92,9 +88,38 @@ def get_g_index(driver):
         if i == length-1:
             return i
 
+
+def cal_g_and_h(url, numTry = 0):
+    try:
+        personal_page_url = get_personal_url(url)
+
+        driver = webdriver.Chrome()
+        driver.get(personal_page_url)
+        re = requests.get(personal_page_url)
+        soup = BeautifulSoup(re.content, 'html.parser')
+
+        h = get_h_index(soup)
+        g = get_g_index(driver)
+        find = 'YES'
+        numTry = 0
+
+        driver.quit()
+
+    except:
+        if(numTry == 3):
+            find = "NO"
+            h = -1
+            g = -1
+        else:
+            numTry += 1
+            find, h, g = cal_g_and_h(url, numTry)
+
+    return find, h, g
+
+
 # return_list has 4 parameters
 # 1st is the authors name
-# 2nd indicates whether we found the personal page in Google Scholar.(YES/NO/Error Occure))
+# 2nd indicates whether we found the personal page in Google Scholar.(YES/NO)
 # 3rd is the h_index, if the second is fault, it will be -1
 # 4th is the g_index, if the second is fault, it will be -1
 def step1(url_list, authors):
@@ -119,27 +144,13 @@ def step1(url_list, authors):
         visited_url.append(url)
         print("Visiting: " + url)
 
-        try:
-            personal_page_url = get_personal_url(url)
-
-            driver = webdriver.Chrome()
-            driver.get(personal_page_url)
-            re = requests.get(personal_page_url)
-            soup = BeautifulSoup(re.content, 'html.parser')
-
-            result.append('YES')
-            result.append(get_h_index(soup))
-            result.append(get_g_index(driver))
-            driver.quit()
-            result_list.append(result)
-
-        except:
-            result.append('NO')
-            result.append(-1)  # h-index = -1
-            result.append(-1)  # g-index = -1
-            result_list.append(result)
-            continue
+        find, h, g = cal_g_and_h(url)
+        result.append(find)
+        result.append(h)
+        result.append(g)
+        result_list.append(result)
         print(result)
+
 
     return result_list
 
