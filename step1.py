@@ -16,7 +16,7 @@ def extractAuthors(score_file):
     return authors
 
 def write_result(result_list):
-    with open('g-index and h-index.csv', 'w') as file:
+    with open('g-index and h-index.csv', 'w', encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(['author_name', 'find_or_not', 'H-index', 'G-index'])
         for result in result_list:
