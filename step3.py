@@ -102,7 +102,6 @@ def extract_h(scopus):
                 h.append('-1')
     return h
 
-
 #############################main#############################
 
 file_path = '/Users/zhangqihao/Desktop/BIA660/FINNAL/Dataset/SCORE_csv.csv' 
